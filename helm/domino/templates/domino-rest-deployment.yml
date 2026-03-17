@@ -58,6 +58,10 @@ spec:
                   name: {{ .Release.Name }}-secrets
             - name: DOMINO_GITHUB_WORKFLOWS_REPOSITORY
               value: {{ .Values.rest.workflowsRepository }}
+            {{- if .Values.rest.gitApiBaseUrl }}
+            - name: DOMINO_GIT_API_BASE_URL
+              value: {{ .Values.rest.gitApiBaseUrl }}
+            {{- end }}
           {{- if .Values.rest.extraVolumeMounts }}
           volumeMounts:
 {{ toYaml .Values.rest.extraVolumeMounts | indent 12 }}

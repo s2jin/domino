@@ -45,7 +45,10 @@ class WorkflowService(object):
     def __init__(self) -> None:
         # Clients
         self.file_system_client = LocalFilesClient()
-        self.github_rest_client = GithubRestClient(token=settings.DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS)
+        self.github_rest_client = GithubRestClient(
+            token=settings.DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS,
+            base_url=settings.DOMINO_GIT_API_BASE_URL
+        )
         self.airflow_client = AirflowRestClient()
 
         # Service

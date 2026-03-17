@@ -17,7 +17,9 @@ rest:
   tag: latest
   deployMode: local-k8s # TODO change to prod
   airflowWebserverHost: http://airflow-api-server:8080
-  # Github workflows repository name - Same one used in airflow gitSync ssh
+  # Git API base URL - set for Gitea/GitLab (e.g. http://gitea-http.gitea.svc.cluster.local:3000/api/v1)
+  gitApiBaseUrl: ""
+  # Workflows repository name - Same one used in airflow gitSync
   workflowsRepository: ~
   createDefaultUser: true
 
