@@ -191,7 +191,14 @@ class AirflowRestClient(requests.Session):
             raise ResourceNotFoundException("Task result not found.")
         if response.status_code != 200:
             raise BaseException("Error while trying to get task result base64_content")
-        response_dict =  ast.literal_eval(response.json()["value"])
+        value = response.json().get("value")
+        # Airflow 3.x returns dict directly, Airflow 2.x returns string
+        if isinstance(value, str):
+            response_dict = ast.literal_eval(value)
+        elif isinstance(value, dict):
+            response_dict = value
+        else:
+            return {}
         # Get base64_content and file_type
         result_dict = dict()
         if "display_result" in response_dict:

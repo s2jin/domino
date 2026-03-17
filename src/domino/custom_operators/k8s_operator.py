@@ -48,6 +48,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         self.piece_input_kwargs = piece_input_kwargs
         self.workflow_shared_storage = workflow_shared_storage
         self.piece_source_image = k8s_operator_kwargs["image"]
+        self.shared_storage_sidecar_container_name = None
 
         # Environment variables
         pod_env_vars = {
@@ -205,7 +206,6 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
                 k8s.V1VolumeMount(
                     name=f'workflow-shared-storage-volume-{self.task_id_replaced}'[0:63], # max resource name in k8s is 63 chars
                     mount_path=f"{self.shared_storage_base_mount_path}/{tid}",  # path inside main container
-                    mount_propagation="HostToContainer",
                     read_only=True,
                 )
             )
@@ -214,8 +214,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
             k8s.V1VolumeMount(
                 name=f'workflow-shared-storage-volume-{self.task_id_replaced}'[0:63],  # max resource name in k8s is 63 chars
                 mount_path=f"{self.shared_storage_base_mount_path}/{self.task_id}",  # path inside main container
-                mount_propagation="Bidirectional",
-                read_only=True,
+                read_only=False,
             )
         )
         return pod_cp
@@ -436,9 +435,14 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
             'value': str(upstream_task_ids),
         })
         # Pass forward the workflow shared storage source name
+        # For local PVC-based storage, send "none" to skip sidecar wait in piece code
+        # (PVC is already mounted directly, no sidecar needed)
+        storage_source_name = str(self.workflow_shared_storage.source.name) if self.workflow_shared_storage else None
+        if storage_source_name == "local":
+            storage_source_name = "none"
         self.env_vars.append({
             'name': 'DOMINO_WORKFLOW_SHARED_STORAGE_SOURCE_NAME',
-            'value': str(self.workflow_shared_storage.source.name) if self.workflow_shared_storage else None,
+            'value': storage_source_name,
         })
         # Save updated piece input kwargs with upstream data to environment variable
         self.upstream_xcoms_data = self._get_upstream_xcom_data_from_task_ids(task_ids=upstream_task_ids, context=context)
@@ -499,7 +503,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
             if self.do_xcom_push:
                 result = self.extract_xcom(pod=self.pod)
 
-            if self.workflow_shared_storage and self.workflow_shared_storage.mode.name != 'none':
+            if self.workflow_shared_storage and self.workflow_shared_storage.mode.name != 'none' and self.shared_storage_sidecar_container_name:
                 self._kill_shared_storage_sidecar(pod=self.pod)
             remote_pod = self.pod_manager.await_pod_completion(self.pod)
         finally:
