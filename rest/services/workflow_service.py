@@ -276,10 +276,17 @@ class WorkflowService(object):
         else:
             airflow_dag_info = airflow_dag_info.json()
 
-        # Airflow 2.4.0 deprecated schedule_interval in dag but the API (2.7.2) still using it
-        schedule = airflow_dag_info.pop("schedule_interval")
-        if isinstance(schedule, dict):
-            schedule = schedule.get("value")
+        # Airflow 3.x uses timetable_summary instead of schedule_interval
+        schedule = airflow_dag_info.pop("timetable_summary", None)
+        # Remove extra fields from Airflow 3.x that are not in the response model
+        for key in list(airflow_dag_info.keys()):
+            if key not in [
+                'is_paused', 'is_active', 'is_subdag', 'last_pickled', 'last_expired',
+                'max_active_tasks', 'max_active_runs', 'has_task_concurrency_limits',
+                'has_import_errors', 'next_dagrun', 'next_dagrun_data_interval_start',
+                'next_dagrun_data_interval_end'
+            ]:
+                airflow_dag_info.pop(key)
 
         response = GetWorkflowResponse(
             id=workflow.id,
@@ -587,17 +594,17 @@ class WorkflowService(object):
 
     def workflow_details(self, workflow_id: str):
         try:
-            all_tasks_response = self.airflow_client.get_all_workflow_tasks(workflow_id=workflow_id).json()
-            all_workflow_runs = self.airflow_client.get_all_workflow_runs(workflow_id=workflow_id).json()
+            all_tasks_response = self.airflow_client.get_all_dag_tasks(dag_id=workflow_id).json()
+            all_workflow_runs = self.airflow_client.get_all_workflow_runs(dag_id=workflow_id, page=0, page_size=100).json()
 
             response_payload = {
                 "n_tasks": all_tasks_response["total_entries"],
                 "n_runs": all_workflow_runs["total_entries"],
                 "executions": [{
-                    "execution_date": e["execution_date"],
+                    "execution_date": e.get("logical_date"),
                     "state": e["state"],
                     "elapsed_time": "" if e['end_date'] is None else str(datetime.fromisoformat(e['end_date']) - datetime.fromisoformat(e['start_date']))
-                } for e in all_workflow_runs['workflow_runs']]
+                } for e in all_workflow_runs['dag_runs']]
             }
             return response_payload
         except Exception as e:
@@ -704,7 +711,7 @@ class WorkflowService(object):
         data = [
             GetWorkflowRunTasksResponseData(
                 **task_instance,
-                docker_image=task_instance.get('rendered_fields').get('image'),
+                docker_image=task_instance.get('rendered_fields', {}).get('image'),
             ) for task_instance in response_data['task_instances']
         ]
         response = GetWorkflowRunTasksResponse(
@@ -778,7 +785,7 @@ class WorkflowService(object):
                         duration=task.get("duration"),
                         start_date=task.get("start_date"),
                         end_date=task.get("end_date"),
-                        execution_date=task.get("execution_date"),
+                        execution_date=task.get("logical_date"),
                         task_id=task.get("task_id"),
                         state=task.get("state"),
                     )

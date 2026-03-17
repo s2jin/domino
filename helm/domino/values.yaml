@@ -16,9 +16,14 @@ rest:
   image: ghcr.io/tauffer-consulting/domino-rest
   tag: latest
   deployMode: local-k8s # TODO change to prod
+  airflowWebserverHost: http://airflow-api-server:8080
   # Github workflows repository name - Same one used in airflow gitSync ssh
   workflowsRepository: ~
   createDefaultUser: true
+
+# Ingress
+ingress:
+  host: ""
 
 # Change this if using external Database
 database:

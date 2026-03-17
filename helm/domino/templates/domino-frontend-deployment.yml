@@ -15,6 +15,20 @@ spec:
       labels:
         app: {{ .Release.Name }}-frontend
     spec:
+      initContainers:
+        - name: replace-api-url
+          image: {{ .Values.frontend.image }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              cp -r /usr/share/nginx/html/* /tmp/html/
+              find /tmp/html -name '*.js' -exec sed -i "s|http://localhost/api|${API_URL}|g" {} +
+          env:
+            - name: API_URL
+              value: {{ .Values.frontend.apiUrl }}
+          volumeMounts:
+            - name: html-volume
+              mountPath: /tmp/html
       containers:
         - name: {{ .Release.Name }}-frontend
           image: {{ .Values.frontend.image }}
@@ -32,6 +46,12 @@ spec:
               value: {{ .Values.frontend.deployMode }}
             - name: API_URL
               value: {{ .Values.frontend.apiUrl }}
+          volumeMounts:
+            - name: html-volume
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: html-volume
+          emptyDir: {}
 
 ---
 # Frontend Service

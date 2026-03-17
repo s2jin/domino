@@ -153,7 +153,7 @@ class GetWorkflowRunsResponseData(BaseModel):
     dag_run_id: str = Field(alias='workflow_run_id')
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
-    execution_date: Optional[datetime] = None
+    execution_date: Optional[datetime] = Field(None, alias='logical_date')
     duration_in_seconds: Optional[float] = None
     state: Optional[WorkflowRunState] = None
 
@@ -176,7 +176,7 @@ class GetWorkflowRunTasksResponseData(BaseModel):
     duration: Optional[float] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
-    execution_date: Optional[datetime] = None
+    execution_date: Optional[datetime] = Field(None, alias='logical_date')
     docker_image: Optional[str] = None
     task_id: str
     try_number: int
