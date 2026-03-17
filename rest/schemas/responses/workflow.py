@@ -75,8 +75,8 @@ class GetWorkflowsResponseData(BaseModel):
     last_changed_by: int
     created_by: int
     workspace_id: int
-    is_paused: bool
-    is_active: bool
+    is_paused: Optional[bool] = False
+    is_active: Optional[bool] = False
     status: WorkflowStatus
     schedule: Optional[ScheduleIntervalTypeResponse] = None
     next_dagrun: Optional[datetime] = None

@@ -606,7 +606,7 @@ class WorkflowService(object):
                 "executions": [{
                     "execution_date": e.get("logical_date"),
                     "state": e["state"],
-                    "elapsed_time": "" if e['end_date'] is None else str(datetime.fromisoformat(e['end_date']) - datetime.fromisoformat(e['start_date']))
+                    "elapsed_time": "" if e['end_date'] is None else str(datetime.fromisoformat(e['end_date'].replace('Z', '+00:00')) - datetime.fromisoformat(e['start_date'].replace('Z', '+00:00')))
                 } for e in all_workflow_runs['dag_runs']]
             }
             return response_payload
@@ -663,8 +663,8 @@ class WorkflowService(object):
                     GetWorkflowRunsResponseData(**run)
                 )
                 continue
-            end_date_dt = datetime.fromisoformat(run.get('end_date'))
-            start_date_dt = datetime.fromisoformat(run.get('start_date'))
+            end_date_dt = datetime.fromisoformat(run.get('end_date').replace('Z', '+00:00'))
+            start_date_dt = datetime.fromisoformat(run.get('start_date').replace('Z', '+00:00'))
             duration = end_date_dt - start_date_dt
             run['duration_in_seconds'] = duration.total_seconds()
             data.append(
@@ -762,7 +762,7 @@ class WorkflowService(object):
             )
             all_run_tasks.extend(response.json().get("task_instances"))
 
-        sorted_all_run_tasks = sorted(all_run_tasks, key=lambda item: datetime.strptime(item["end_date"], "%Y-%m-%dT%H:%M:%S.%f%z"))
+        sorted_all_run_tasks = sorted(all_run_tasks, key=lambda item: datetime.fromisoformat(item["end_date"].replace('Z', '+00:00')))
 
         result_list = []
 

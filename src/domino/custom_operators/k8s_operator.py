@@ -1,4 +1,7 @@
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
+try:
+    from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+except ImportError:
+    from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.utils.context import Context
 from kubernetes.client import models as k8s
 from kubernetes import client, config
@@ -14,7 +17,10 @@ from domino.schemas import WorkflowSharedStorage, ContainerResourcesModel
 from domino.storage.s3 import S3StorageRepository
 from domino.logger import get_configured_logger
 from airflow.exceptions import AirflowException
-from airflow.kubernetes.pod_generator import PodDefaults
+try:
+    from airflow.providers.cncf.kubernetes.utils.xcom_sidecar import PodDefaults
+except ImportError:
+    from airflow.kubernetes.pod_generator import PodDefaults
 import json
 
 class DominoKubernetesPodOperator(KubernetesPodOperator):
@@ -408,7 +414,6 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         self.env_vars.append({
             'name': 'AIRFLOW_UPSTREAM_TASKS_IDS_SHARED_STORAGE',
             'value': str(self.shared_storage_upstream_ids_list),
-            'value_from': None
         })
 
 
@@ -429,13 +434,11 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         self.env_vars.append({
             'name': 'AIRFLOW_UPSTREAM_TASKS_IDS',
             'value': str(upstream_task_ids),
-            'value_from': None
         })
         # Pass forward the workflow shared storage source name
         self.env_vars.append({
             'name': 'DOMINO_WORKFLOW_SHARED_STORAGE_SOURCE_NAME',
             'value': str(self.workflow_shared_storage.source.name) if self.workflow_shared_storage else None,
-            'value_from': None
         })
         # Save updated piece input kwargs with upstream data to environment variable
         self.upstream_xcoms_data = self._get_upstream_xcom_data_from_task_ids(task_ids=upstream_task_ids, context=context)
@@ -451,7 +454,6 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         self.env_vars.append({
             "name": "DOMINO_PIECE_SECRETS",
             "value": str(piece_secrets),
-            "value_from": None
         })
 
         # Include workflow run subpath from dag run id, taken from context
@@ -462,7 +464,6 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         self.env_vars.append({
             'name': 'DOMINO_WORKFLOW_RUN_SUBPATH',
             'value': self.workflow_run_subpath,
-            'value_from': None
         })
 
 
