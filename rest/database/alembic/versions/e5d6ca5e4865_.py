@@ -38,7 +38,7 @@ def upgrade():
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=True),
     sa.Column('label', sa.String(length=50), nullable=True),
-    sa.Column('source', sa.Enum('github', 'default', 'Config', name='repositorysource'), nullable=True),
+    sa.Column('source', sa.Enum('github', 'gitea', 'default', 'Config', name='repositorysource'), nullable=True),
     sa.Column('path', sa.String(length=250), nullable=True),
     sa.Column('version', sa.String(length=10), nullable=True),
     sa.Column('dependencies_map', sa.JSON(), nullable=True),

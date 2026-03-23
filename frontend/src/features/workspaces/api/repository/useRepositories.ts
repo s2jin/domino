@@ -10,7 +10,7 @@ interface PiecesRepositoriesParams {
   name__like?: string;
   path__like?: string;
   version?: string;
-  source?: "github" | "default";
+  source?: "github" | "gitea" | "default";
 }
 
 interface PiecesRepositories {
