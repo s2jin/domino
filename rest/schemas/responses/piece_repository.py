@@ -38,7 +38,7 @@ class PatchRepositoryResponse(CreateRepositoryReponse):
 
 class GetRepositoryReleasesResponse(BaseModel):
     version: str
-    last_modified: str
+    last_modified: Optional[str] = None
 
 
 class GetRepositoryReleaseDataResponse(BaseModel):

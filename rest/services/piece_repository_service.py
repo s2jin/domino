@@ -88,12 +88,19 @@ class PieceRepositoryService(object):
         self.logger.info(f"Getting releases for repository {path}")
 
         token = auth_context.workspace.github_access_token if auth_context.workspace.github_access_token else settings.DOMINO_DEFAULT_PIECES_REPOSITORY_TOKEN
-        if not token.strip():
+        if token is not None and not token.strip():
             token = None
+
+        if source == getattr(RepositorySource, 'gitea').value:
+            gitea_client = GithubRestClient(token=token, base_url=settings.DOMINO_GIT_API_BASE_URL)
+            tags = gitea_client.get_tags(repo_name=path)
+            if not tags:
+                return []
+            return [GetRepositoryReleasesResponse(version=tag.get("name"), last_modified=None) for tag in tags]
+
         github_client = GithubRestClient(token=token)
         if source == getattr(RepositorySource, 'github').value:
             tags = github_client.get_tags(repo_name=path)
-        # TODO add other sources
         if not tags:
             return []
         return [GetRepositoryReleasesResponse(version=tag.name, last_modified=tag.last_modified) for tag in tags]
@@ -318,6 +325,53 @@ class PieceRepositoryService(object):
         }
         return data
 
+    def _read_data_from_gitea(self, path: str, version: str, github_access_token: str = None) -> dict:
+        """Read files from a specific version of repository in Gitea.
+
+        Args:
+            path (str): Repository path (owner/repo)
+            version (str): Tag version name
+            github_access_token (str): Gitea access token
+
+        Returns:
+            dict: dictionary containing repository data
+        """
+        import base64 as b64module
+        gitea_base_url = settings.DOMINO_GIT_API_BASE_URL
+        gitea_client = GithubRestClient(token=github_access_token, base_url=gitea_base_url)
+        tag = gitea_client.get_tag(repo_name=path, tag_name=version)
+        if not tag:
+            raise ResourceNotFoundException(message=f"Version {version} not found in repository {path}")
+
+        commit_sha_ref = tag.get("commit", {}).get("sha") or tag.get("id", "")
+
+        dependencies_map_resp = gitea_client.get_contents(
+            repo_name=path,
+            file_path='.domino/dependencies_map.json',
+            commit_sha=commit_sha_ref
+        )
+        dependencies_map = json.loads(b64module.b64decode(dependencies_map_resp.get("content", "")).decode("utf-8"))
+
+        compiled_metadata_resp = gitea_client.get_contents(
+            repo_name=path,
+            file_path='.domino/compiled_metadata.json',
+            commit_sha=commit_sha_ref
+        )
+        compiled_metadata = json.loads(b64module.b64decode(compiled_metadata_resp.get("content", "")).decode("utf-8"))
+
+        config_toml_resp = gitea_client.get_contents(
+            repo_name=path,
+            file_path='config.toml',
+            commit_sha=commit_sha_ref
+        )
+        config_toml = tomli.loads(b64module.b64decode(config_toml_resp.get("content", "")).decode("utf-8"))
+
+        return {
+            "dependencies_map": dependencies_map,
+            "compiled_metadata": compiled_metadata,
+            "config_toml": config_toml
+        }
+
     def _update_repository_pieces(
         self,
         source: str,
@@ -325,10 +379,11 @@ class PieceRepositoryService(object):
         dependencies_map: dict,
         repository_id: int,
     ):
-        read_pieces_from_github = {
-            "github": self.piece_service.check_pieces_to_update_github
+        update_pieces_map = {
+            "github": self.piece_service.check_pieces_to_update_github,
+            "gitea": self.piece_service.check_pieces_to_update_github,
         }
-        read_pieces_from_github[source](
+        update_pieces_map[source](
             repository_id=repository_id,
             compiled_metadata=compiled_metadata,
             dependencies_map=dependencies_map,
@@ -337,6 +392,7 @@ class PieceRepositoryService(object):
     def _read_repository_data(self, source: str, path: str, version: str, github_access_token: str):
         read_metadata_from_source_map = {
             "github": self._read_data_from_github,
+            "gitea": self._read_data_from_gitea,
         }
         return read_metadata_from_source_map[source](path=path, version=version, github_access_token=github_access_token)
 

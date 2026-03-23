@@ -3,6 +3,7 @@ import enum
 
 class RepositorySource(str, enum.Enum):
     github = 'github'
+    gitea = 'gitea'
     default = 'default'
 
     class Config:

@@ -65,19 +65,27 @@ export const RepositoriesCard: FC = () => {
    */
   type StepType = "FETCH_METADATA" | "SELECT_VERSION";
 
-  /** TODO improve when more sources become available */
   const { source, path } = useMemo(() => {
     if (url.length > 5) {
-      const [source, path] = url
-        .trim()
-        .toLowerCase()
-        .replace("https://", "")
-        .split(".com/");
+      const trimmed = url.trim().toLowerCase().replace("https://", "").replace("http://", "");
 
-      if (source !== "github")
-        setError(`Invalid repository source ${source}. Expected github.`);
+      // Check for github.com URLs
+      if (trimmed.startsWith("github.com/")) {
+        const path = trimmed.replace("github.com/", "");
+        setError(false);
+        return { source: "github", path };
+      }
 
-      return { source, path };
+      // Treat any other URL as gitea
+      const slashIndex = trimmed.indexOf("/");
+      if (slashIndex !== -1) {
+        const path = trimmed.substring(slashIndex + 1);
+        setError(false);
+        return { source: "gitea", path };
+      }
+
+      setError(`Invalid repository URL: ${url}`);
+      return { source: "", path: "" };
     } else {
       setError(false);
       return { source: "", path: "" };

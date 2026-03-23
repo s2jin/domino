@@ -1,4 +1,5 @@
 # remove
+pieces/
 pieces_repository_test/*
 airflow/*
 domino_data/*
