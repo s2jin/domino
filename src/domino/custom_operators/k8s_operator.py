@@ -32,8 +32,7 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         deploy_mode: str, # TODO enum
         repository_url: str,
         repository_version: str,
-        repository_source: Optional[str] = None,
-        workspace_id: int = None,
+        workspace_id: int,
         piece_input_kwargs: Optional[Dict] = None,
         workflow_shared_storage: WorkflowSharedStorage = None,
         container_resources: Optional[Dict] = None,
@@ -45,7 +44,6 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         self.deploy_mode = deploy_mode
         self.repository_url = repository_url
         self.repository_version = repository_version
-        self.repository_source = repository_source
         self.workspace_id = workspace_id
         self.piece_input_kwargs = piece_input_kwargs
         self.workflow_shared_storage = workflow_shared_storage
@@ -346,18 +344,17 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
         repository_url: str,
         repository_version: str,
         piece_name: str,
-        source: Optional[str] = None
+        source: str = 'github'
     ) -> Dict[str, Any]:
         """Get piece secrets values from Domino API"""
         params = {
             "workspace_id": self.workspace_id,
             "url": repository_url,
             "version": repository_version,
+            'source': source,
             "page": 0,
             "page_size": 1,
         }
-        if source:
-            params['source'] = source
         piece_repository_data = self.domino_client.get_piece_repositories_from_workspace_id(
             params=params
         ).json()
@@ -457,7 +454,6 @@ class DominoKubernetesPodOperator(KubernetesPodOperator):
             repository_url=self.repository_url,
             repository_version=self.repository_version,
             piece_name=self.piece_name,
-            source=self.repository_source,
         )
         self.env_vars.append({
             "name": "DOMINO_PIECE_SECRETS",
