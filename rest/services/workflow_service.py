@@ -500,6 +500,7 @@ class WorkflowService(object):
                     'source_image': piece_db.source_image,
                     'repository_url': piece_db.piece_repository_url,
                     'repository_version': piece_db.piece_repository_version,
+                    'source': piece_db.piece_repository_source,
                 },
                 'input_kwargs': input_kwargs,
                 'workflow_shared_storage': workflow_shared_storage,
