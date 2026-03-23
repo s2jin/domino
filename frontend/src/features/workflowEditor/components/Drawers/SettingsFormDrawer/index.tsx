@@ -49,28 +49,24 @@ const defaultSettingsData: IWorkflowSettings = {
   },
 };
 
-const storageSourceOptions =
-  environment.DOMINO_DEPLOY_MODE === "local-compose"
+const storageSourceOptions = [
+  {
+    label: "None",
+    value: "None",
+  },
+  {
+    label: "Local",
+    value: "Local",
+  },
+  ...(environment.DOMINO_DEPLOY_MODE !== "local-compose"
     ? [
-        {
-          label: "None",
-          value: "None",
-        },
-        {
-          label: "Local",
-          value: "Local",
-        },
-      ]
-    : [
-        {
-          label: "None",
-          value: "None",
-        },
         {
           label: "AWS S3",
           value: "AWS S3",
         },
-      ];
+      ]
+    : []),
+];
 
 type ValidationSchema = yup.ObjectSchema<IWorkflowSettings>;
 

@@ -346,14 +346,14 @@ def create_dependencies_map(save_map_as_file: bool = True) -> None:
             json.dump(pieces_images_map, outfile, indent=4, cls=SetEncoder)
 
 
-def build_docker_images(tag_overwrite: str | None = None, dev: bool = False) -> None:
+def build_docker_images(tag_overwrite: str | None = None, dev: bool = False, registry_url: str = "ghcr.io") -> None:
     """
     Convenience function to build Docker images from the repository dependencies and publish them to Docker Hub
     """
     from domino.scripts.build_docker_images_pieces import build_images_from_pieces_repository
 
     console.print("Building Docker images and generating map file...")
-    updated_dependencies_map = build_images_from_pieces_repository(tag_overwrite=tag_overwrite, dev=dev)
+    updated_dependencies_map = build_images_from_pieces_repository(tag_overwrite=tag_overwrite, dev=dev, registry_url=registry_url)
     return updated_dependencies_map
 
 
@@ -389,7 +389,8 @@ def organize_pieces_repository(
     build_images: bool,
     source_url: str,
     tag_overwrite: str | None = None,
-    dev: bool = False
+    dev: bool = False,
+    registry_url: str = "ghcr.io"
 ) -> None:
     """
     Organize Piece's repository for Domino. This will:
@@ -424,7 +425,7 @@ def organize_pieces_repository(
 
     # Build and publish the images
     if build_images:
-        updated_dependencies_map = build_docker_images(tag_overwrite=tag_overwrite, dev=dev)
+        updated_dependencies_map = build_docker_images(tag_overwrite=tag_overwrite, dev=dev, registry_url=registry_url)
         map_file_path = Path(".") / ".domino/dependencies_map.json"
         with open(map_file_path, "w") as outfile:
             json.dump(updated_dependencies_map, outfile, indent=4)

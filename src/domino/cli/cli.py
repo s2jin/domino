@@ -309,9 +309,14 @@ def cli_create_piece_repository(name, container_registry):
     default=False,
     help="Build pieces images using development base piece image."
 )
-def cli_organize_pieces_repository(build_images: bool, source_url: str, tag_overwrite: str, dev: bool):
+@click.option(
+    '--registry-url',
+    default="ghcr.io",
+    help='Container registry URL (e.g. harbor.example.com, ghcr.io).'
+)
+def cli_organize_pieces_repository(build_images: bool, source_url: str, tag_overwrite: str, dev: bool, registry_url: str):
     """Organize Pieces repository."""
-    pieces_repository.organize_pieces_repository(build_images, source_url, tag_overwrite, dev)
+    pieces_repository.organize_pieces_repository(build_images, source_url, tag_overwrite, dev, registry_url)
 
 
 @click.command()

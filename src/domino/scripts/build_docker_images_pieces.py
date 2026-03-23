@@ -56,7 +56,7 @@ def build_image_from_tmp_dockerfile(
         (Path(path) / dockerfile).unlink()
 
 
-def build_images_from_pieces_repository(tag_overwrite: str | None = None, dev: bool = False):
+def build_images_from_pieces_repository(tag_overwrite: str | None = None, dev: bool = False, registry_url: str = "ghcr.io"):
     """
     Each dependencies group will need to have its own Docker image built and published to be used by Domino.
     This is because the Pieces source code goes baked in the images.
@@ -75,7 +75,7 @@ def build_images_from_pieces_repository(tag_overwrite: str | None = None, dev: b
 
     docker_image_repository = repo_config.get("REPOSITORY_NAME")
     docker_image_version = repo_config.get("VERSION")
-    github_container_registry_name = f'ghcr.io/{repo_config.get("REGISTRY_NAME")}'.lower()
+    github_container_registry_name = f'{registry_url.rstrip("/")}/{repo_config.get("REGISTRY_NAME")}'.lower()
 
     # Load dependencies_map.json file
     with open(domino_path / "dependencies_map.json", "r") as f:
