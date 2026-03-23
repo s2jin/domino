@@ -49,6 +49,7 @@ class PieceRepository(object):
                 PieceRepositoryDatabaseModel.id.label("piece_repository_id"),
                 PieceRepositoryDatabaseModel.url.label("piece_repository_url"),
                 PieceRepositoryDatabaseModel.version.label("piece_repository_version"),
+                PieceRepositoryDatabaseModel.source.label("piece_repository_source"),
                 Piece.source_image.label("source_image"),
                 Piece.id.label('piece_id'),
                 Piece.name.label("piece_name"),

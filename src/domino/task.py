@@ -37,6 +37,7 @@ class Task(object):
         self.dag_id = self.dag.dag_id
         self.repository_url = piece["repository_url"]
         self.repository_version = piece["repository_version"]
+        self.repository_source = piece.get("source")
         self.piece = piece
         self.piece_input_kwargs = piece_input_kwargs
         if "execution_mode" not in self.piece:
@@ -111,6 +112,7 @@ class Task(object):
                 deploy_mode=self.deploy_mode,
                 repository_url=self.repository_url,
                 repository_version=self.repository_version,
+                repository_source=self.repository_source,
                 workspace_id=self.workspace_id,
                 piece_input_kwargs=self.piece_input_kwargs,
                 workflow_shared_storage=self.workflow_shared_storage,
