@@ -9,6 +9,7 @@ class MessageRole(str, enum.Enum):
     user = 'user'
     assistant = 'assistant'
     think = 'think'
+    tool = 'tool'
 
 
 class ChatSession(Base, BaseDatabaseModel):

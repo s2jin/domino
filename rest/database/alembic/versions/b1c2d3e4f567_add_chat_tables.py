@@ -28,7 +28,7 @@ def upgrade():
         'chat_message',
         sa.Column('id', sa.Integer(), primary_key=True),
         sa.Column('session_id', sa.Integer(), sa.ForeignKey('chat_session.id', ondelete='CASCADE'), nullable=False),
-        sa.Column('role', sa.Enum('user', 'assistant', 'think', name='messagerole'), nullable=False),
+        sa.Column('role', sa.Enum('user', 'assistant', 'think', 'tool', name='messagerole'), nullable=False),
         sa.Column('content', sa.Text(), nullable=False),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
     )

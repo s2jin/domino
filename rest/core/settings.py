@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS: str | None = os.environ.get('DOMINO_GITHUB_ACCESS_TOKEN_WORKFLOWS', None)
     DOMINO_GIT_API_BASE_URL: str | None = os.environ.get('DOMINO_GIT_API_BASE_URL', None)
 
+    # LLM Agent service
+    LLM_AGENT_URL: str = os.environ.get('LLM_AGENT_URL', 'http://localhost:9000')
+
     # Workflows storage
     DOMINO_GITHUB_WORKFLOWS_REPOSITORY: str = os.environ.get('DOMINO_GITHUB_WORKFLOWS_REPOSITORY', "Tauffer-Consulting/domino_workflows_dev")
     DOMINO_LOCAL_WORKFLOWS_REPOSITORY: str = '/opt/airflow/dags'

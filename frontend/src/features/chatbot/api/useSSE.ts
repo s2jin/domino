@@ -91,15 +91,16 @@ export const useSSE = () => {
                 if (event.type === "ping") continue;
                 if (event.type === ("connected" as string)) {
                   onConnected();
-                } else if (event.type === "doing") {
+                } else if (event.type === "doing" || event.type === ("tool" as string)) {
+                  const label = event.type === ("tool" as string) ? `🔧 ${event.content}` : event.content;
                   setSessions((prev) => {
                     const s = prev[sessionId] ?? defaultState;
                     return {
                       ...prev,
                       [sessionId]: {
                         ...s,
-                        streamingContent: event.content,
-                        doingMessages: [...s.doingMessages, event.content],
+                        streamingContent: label,
+                        doingMessages: [...s.doingMessages, label],
                       },
                     };
                   });

@@ -136,9 +136,9 @@ def send_message(
         _cancelled_sessions.discard(session_id)
         result = chatbot_service.send_message(session_id, auth_context.user_id, body.content)
 
-        # Schedule background task to simulate chatbot API (doing -> done)
+        # Call LLM agent service in background
         background_tasks.add_task(
-            _mock_chatbot_response, session_id, auth_context.user_id, body.content
+            _call_llm_agent, session_id, auth_context.user_id
         )
 
         return SendMessageResponse(**result)
@@ -146,42 +146,39 @@ def send_message(
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
-async def _mock_chatbot_response(session_id: int, user_id: int, user_content: str):
-    """Temporary mock: sends doing steps, then done."""
-    steps = [
-        "Analyzing your message...",
-        "Searching for relevant information...",
-        "Generating response...",
-    ]
+async def _call_llm_agent(session_id: int, user_id: int):
+    """Call LLM agent service and relay streamed events to SSE subscribers."""
+    from clients.llm_agent_client import stream_llm_agent
 
-    for step in steps:
+    # Get chat history
+    session_data = chatbot_service.get_session_with_messages(session_id, user_id)
+    messages = session_data["messages"]
+
+    async for event in stream_llm_agent(messages):
+        # Check if cancelled
         if session_id in _cancelled_sessions:
             _cancelled_sessions.discard(session_id)
             return
 
-        # Save think message to DB
-        chatbot_service.save_think_message(session_id, user_id, step)
+        event_type = event.get("type", "")
+        content = event.get("content", "")
 
-        doing_event = {"type": "doing", "content": step}
+        # Save to DB based on type
+        if event_type == "doing" and content:
+            chatbot_service.save_think_message(session_id, user_id, content)
+        elif event_type == "tool" and content:
+            chatbot_service.save_tool_message(session_id, user_id, content)
+        elif event_type == "done" and content:
+            chatbot_service.save_assistant_message(session_id, user_id, content)
+
+        # Relay to SSE subscribers
         if session_id in _sse_subscribers:
             for q in _sse_subscribers[session_id]:
-                await q.put(doing_event)
+                await q.put(event)
 
-        await asyncio.sleep(0.7)
-
-    # Check if cancelled
-    if session_id in _cancelled_sessions:
-        _cancelled_sessions.discard(session_id)
-        return
-
-    # Save and send done
-    assistant_content = f"{user_content} [mock response]"
-    chatbot_service.save_assistant_message(session_id, user_id, assistant_content)
-
-    done_event = {"type": "done", "content": assistant_content}
-    if session_id in _sse_subscribers:
-        for q in _sse_subscribers[session_id]:
-            await q.put(done_event)
+        # Stop after done or error
+        if event_type in ("done", "error"):
+            return
 
 
 @router.post(

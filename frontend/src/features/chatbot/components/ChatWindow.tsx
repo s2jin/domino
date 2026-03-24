@@ -52,8 +52,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ sessionId, sseHook }) =>
     let thinkGroup: string[] = [];
 
     for (const msg of session.messages) {
-      if (msg.role === "think") {
-        thinkGroup.push(msg.content);
+      if (msg.role === "think" || msg.role === "tool") {
+        const label = msg.role === "tool" ? `🔧 ${msg.content}` : msg.content;
+        thinkGroup.push(label);
       } else {
         if (thinkGroup.length > 0) {
           items.push({ type: "think", steps: thinkGroup });

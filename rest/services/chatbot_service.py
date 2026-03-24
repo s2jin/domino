@@ -95,6 +95,20 @@ class ChatbotService:
         )
         return self.chat_repository.add_message(msg)
 
+    def save_tool_message(self, session_id: int, user_id: int, content: str) -> ChatMessage:
+        """Save a tool call/response message."""
+        session = self.chat_repository.get_session(session_id, user_id)
+        if not session:
+            raise ResourceNotFoundException(message="Chat session not found")
+
+        msg = ChatMessage(
+            session_id=session_id,
+            role=MessageRole.tool,
+            content=content,
+            created_at=datetime.utcnow(),
+        )
+        return self.chat_repository.add_message(msg)
+
     def save_assistant_message(self, session_id: int, user_id: int, content: str) -> ChatMessage:
         """Hook for external API to push assistant response."""
         session = self.chat_repository.get_session(session_id, user_id)

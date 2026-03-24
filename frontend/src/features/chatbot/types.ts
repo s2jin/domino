@@ -8,7 +8,7 @@ export interface ChatSession {
 export interface ChatMessage {
   id: number;
   session_id: number;
-  role: "user" | "assistant" | "think";
+  role: "user" | "assistant" | "think" | "tool";
   content: string;
   created_at: string;
 }
