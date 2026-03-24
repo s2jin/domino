@@ -10,6 +10,7 @@ from routers.workspace_router import router as workspace_router
 from routers.piece_repository_router import router as piece_repository_router
 from routers.secret_router import router as secret_router
 from routers.health_check_router import router as health_check_router
+from routers.chatbot_router import router as chatbot_router
 from core.settings import settings
 from utils.populate_first_user import populate_first_user
 from contextlib import asynccontextmanager
@@ -52,6 +53,7 @@ def configure_app():
     app.include_router(workspace_router, tags=["Workspace"])
     app.include_router(secret_router, tags=["Secret"])
     app.include_router(health_check_router, tags=["Health Check"])
+    app.include_router(chatbot_router, tags=["Chatbot"])
 
     return app, settings
 

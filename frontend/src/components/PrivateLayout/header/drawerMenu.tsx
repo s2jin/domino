@@ -2,6 +2,7 @@ import { useColorMode } from "@context/theme";
 import {
   AccountTree as AccountTreeIcon,
   BlurCircular,
+  Chat as ChatIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   Logout as LogoutIcon,
@@ -153,6 +154,16 @@ export const DrawerMenu: FC<IDrawerMenuProps> = ({ isOpen, handleClose }) => {
             label={"Workflow Editor"}
             isMenuOpen={isOpen}
             disabled={!workspace?.id}
+          />
+
+          <DrawerMenuItem
+            selected={pathname === "/chatbot"}
+            onClick={() => {
+              navigate("/chatbot");
+            }}
+            icon={<ChatIcon />}
+            label={"Chatbot"}
+            isMenuOpen={isOpen}
           />
         </List>
         <Divider />

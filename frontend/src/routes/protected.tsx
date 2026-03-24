@@ -22,6 +22,12 @@ const { WorkflowEditorRoute } = lazyImport(
   "WorkflowEditorRoute",
 );
 
+const ChatbotPreFetch = import("@features/chatbot/routes");
+const { ChatbotRoutes } = lazyImport(
+  async () => await ChatbotPreFetch,
+  "ChatbotRoutes",
+);
+
 const WorkspacePreFetch = import("@features/workspaces/routes");
 const { WorkspaceRoute } = lazyImport(
   async () => await WorkspacePreFetch,
@@ -69,6 +75,7 @@ export const protectedRoutes = [
       { path: "workspaces/*", element: <WorkspaceRoute /> },
       { path: "my-workflows/*", element: <MyWorkflowsRoutes /> },
       { path: "workflows-editor/*", element: <WorkflowEditorRoute /> },
+      { path: "chatbot/*", element: <ChatbotRoutes /> },
       {
         path: "forbidden",
         element: <ForbiddenPage />,
